@@ -52,28 +52,71 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.utils import get_column_letter
 
 import re
-# Fondo personalizado y fuente
+
+
+# ==============================
+# Estilos personalizados
+# ==============================
 st.markdown("""
 <style>
-    body {
-        background-color:rgb(171 , 190 , 76);
-        font-family: 'Handel Gothic', 'Frutiger light - Roman';
-    }
+    /* Fondo de toda la aplicación */
     .stApp {
-        background-color: rgb(255, 255, 255);
-        font-family: 'Frutiger Bold', sans-serif;
+        background: #ffffff !important;
+        font-family: "Segoe UI", "Frutiger", "Helvetica Neue", sans-serif;
+        padding-top: 20px;
+    }
+
+    /* Título principal */
+    .main-title {
+        color: rgb(120,154,61);
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1.25;
+        margin-top: 15px;
+        margin-bottom: 0px;
+    }
+
+    /* Subtítulo */
+    .sub-title {
+        color: #4a4a4a;
+        font-size: 1.1rem;
+        margin-top: -5px;
+        margin-bottom: 25px;
+    }
+
+    /* Fondo general de la página (fuera del contenedor blanco) */
+    body {
+        background-color: rgb(171,190,76) !important;
     }
 </style>
-    """, unsafe_allow_html=True)
-# Logo a la izquierda y título a la derecha
-col1, col2 = st.columns([1, 2])
+""", unsafe_allow_html=True)
+
+
+# ==============================
+# LOGO + TÍTULO
+# ==============================
+col1, col2 = st.columns([1, 3])
+
 with col1:
-    st.image('https://www.finagro.com.co/sites/default/files/logo-front-finagro.png', width=200)
+    st.image(
+        "https://www.finagro.com.co/sites/default/files/logo-front-finagro.png",
+        width=180
+    )
+
 with col2:
     st.markdown(
-        '<h1 style="color: rgb(120,154,61); font-size: 2.25rem; font-weight: bold;">Proceso para consultar, descargar, validar y procesar Información financiera con fines de supervisión – CUIF por moneda Entidades vigiladas</h1>',
+        """
+        <h1 class="main-title">
+            Información Financiera CUIF – Consulta, Descarga y Procesamiento
+        </h1>
+        <div class="sub-title">
+            Sistema de apoyo para entidades vigiladas – Moneda Total
+        </div>
+        """,
         unsafe_allow_html=True
     )
+
+
 # -------------------------
 # CONFIG
 # -------------------------
