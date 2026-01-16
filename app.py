@@ -192,7 +192,7 @@ def descargar_datos(fecha_desde, fecha_hasta):
 # -------------------------
 def procesar_dataframe(df, plantilla_path):
     df_final = df.copy()
-    df_final = df_final[(df_final["nombre_moneda"] == "Total")]
+    #df_final = df_final[(df_final["nombre_moneda"] == "Total")] ### ojo por validar
     df_final = df_final[(df_final["nombre_tipo_entidad"] == "ESTABLECIMIENTOS BANCARIOS")]
 
     Rango_de_Valores = 1000
