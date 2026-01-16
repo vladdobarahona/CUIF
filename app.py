@@ -192,7 +192,7 @@ def descargar_datos(fecha_desde, fecha_hasta):
 # -------------------------
 def procesar_dataframe(df, plantilla_path):
     df_final = df.copy()
-    #df_final = df_final[(df_final["nombre_moneda"] == "Total")] ### ojo por validar
+    df_final = df_final[(df_final["nombre_moneda"] == "Total")] 
     df_final = df_final[(df_final["nombre_tipo_entidad"] == "ESTABLECIMIENTOS BANCARIOS")]
 
     Rango_de_Valores = 1000
@@ -243,6 +243,7 @@ def procesar_dataframe(df, plantilla_path):
 # -------------------------
 def generar_excel(pivot_df, fecha_desde):
     date_obj = datetime.strptime(fecha_desde, "%Y-%m-%d")
+    f_informe = datetime.strptime(fecha_desde, "%d/%m/%Y")
     formatted_date = date_obj.strftime("%d%m%Y")
 
     wb = Workbook()
@@ -254,7 +255,7 @@ def generar_excel(pivot_df, fecha_desde):
     ws["B2"] = "1 ESTABLECIMIENTOS BANCARIOS"
 
     ws["A3"] = "Fecha de Informe:"
-    ws["B3"] = fecha_desde
+    ws["B3"] = f_informe
 
     ws["A4"] = "Moneda:"
     ws["B4"] = "0 Total"
