@@ -282,4 +282,3 @@ if st.button("Validar y Descargar"):
             file_name=f"00{fecha_desde.strftime('%d%m%Y')}n.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
-``
