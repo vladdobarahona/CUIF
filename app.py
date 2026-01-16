@@ -50,7 +50,28 @@ from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows, get_column_letter
 import re
-
+# Fondo personalizado y fuente
+st.markdown("""
+<style>
+    body {
+        background-color:rgb(171 , 190 , 76);
+        font-family: 'Handel Gothic', 'Frutiger light - Roman';
+    }
+    .stApp {
+        background-color: rgb(255, 255, 255);
+        font-family: 'Frutiger Bold', sans-serif;
+    }
+</style>
+    """, unsafe_allow_html=True)
+# Logo a la izquierda y título a la derecha
+col1, col2 = st.columns([1, 2])
+with col1:
+    st.image('https://www.finagro.com.co/sites/default/files/logo-front-finagro.png', width=200)
+with col2:
+    st.markdown(
+        '<h1 style="color: rgb(120,154,61); font-size: 2.25rem; font-weight: bold;">Proceso para consultar, descargar, validar y procesar Información financiera con fines de supervisión – CUIF por moneda Entidades vigiladas</h1>',
+        unsafe_allow_html=True
+    )
 # -------------------------
 # CONFIG
 # -------------------------
