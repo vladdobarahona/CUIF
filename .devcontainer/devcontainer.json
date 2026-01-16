@@ -1,0 +1,25 @@
+
+{
+    "name": "Streamlit CUIF App",
+    "dockerFile": "Dockerfile",
+
+    "forwardPorts": [
+        8501
+    ],
+
+    "postCreateCommand": "pip install --upgrade pip && pip install -r requirements.txt",
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-toolsai.jupyter",
+                "ms-azuretools.vscode-docker",
+                "streetsidesoftware.code-spell-checker"
+            ]
+        }
+    },
+
+    "remoteUser": "vscode"
+}
