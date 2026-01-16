@@ -48,7 +48,9 @@ import requests
 from datetime import datetime
 from io import BytesIO
 from openpyxl import Workbook
-from openpyxl.utils.dataframe import dataframe_to_rows, get_column_letter
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.utils import get_column_letter
+
 import re
 # Fondo personalizado y fuente
 st.markdown("""
