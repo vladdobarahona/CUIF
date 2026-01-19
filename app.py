@@ -362,7 +362,7 @@ if st.button("Validar y Descargar"):
 
         st.success("Archivo generado correctamente.")
 
-        xlsx_bytes = generar_excel(pivot_df, fecha_desde_str)
+        xlsx_bytes = generar_excel(pivot_df,tipo_entidad, fecha_desde_str)
 
         st.download_button(
             label="📥 Descargar archivo XLSX",
