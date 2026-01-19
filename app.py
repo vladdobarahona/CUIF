@@ -246,6 +246,7 @@ def generar_excel(pivot_df, tipo_entidad, fecha_desde):
     date_obj = datetime.strptime(fecha_desde, "%Y-%m-%d")
     f_informe = datetime.strptime(fecha_desde, "%d/%m/%Y")
     formatted_date = date_obj.strftime("%d%m%Y")
+    tipo_entidad_str = str(tipo_entidad)
 
     wb = Workbook()
     ws = wb.active
@@ -253,7 +254,7 @@ def generar_excel(pivot_df, tipo_entidad, fecha_desde):
 
     # Encabezados
     ws["A2"] = "Tipo de Entidad:"
-    ws["B2"] = tipo_entidad
+    ws["B2"] = tipo_entidad_str
 
     ws["A3"] = "Fecha de Informe:"
     ws["B3"] = f_informe
