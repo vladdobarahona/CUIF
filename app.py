@@ -193,8 +193,8 @@ def descargar_datos(tipo_entidad,fecha_desde, fecha_hasta):
 # -------------------------
 def procesar_dataframe(df, plantilla_path):
     df_final = df.copy()
-    df_final = df_final[(df_final["nombre_moneda"] == "Total")] 
-    df_final = df_final[(df_final["nombre_tipo_entidad"] == "ESTABLECIMIENTOS BANCARIOS")]
+    #df_final = df_final[(df_final["nombre_moneda"] == "Total")] 
+    #df_final = df_final[(df_final["nombre_tipo_entidad"] == "ESTABLECIMIENTOS BANCARIOS")]
 
     Rango_de_Valores = 1000
     df_final["valor_Rango_de_Valores"] = (
@@ -298,6 +298,7 @@ fecha_desde = st.date_input("Fecha Desde")
 fecha_hasta = st.date_input("Fecha Hasta")
 
 st.subheader("Seleccionar el tipo de entidad")
+
 lista_tipo_entidad = [
     "ESTABLECIMIENTOS BANCARIOS",                                          
     "COMPANIAS DE SEGUROS GENERALES",
@@ -326,6 +327,7 @@ lista_tipo_entidad = [
     "BOLSAS AGROPECUARIAS",
     "ORGANISMOS DE AUTORREGULACION",
 ]
+
 tipo_entidad = st.selectbox(
     label="Seleccione el tipo de entidad (SFC):",
     options=lista_tipo_entidad,
@@ -353,7 +355,7 @@ if st.button("Validar y Descargar"):
         st.write(f"📌 Registros: **{cantidad:,}**")
 
         st.info("⬇️ Descargando datos…")
-        df = descargar_datos(fecha_desde_str, fecha_hasta_str)
+        df = descargar_datos(tipo_entidad,fecha_desde_str, fecha_hasta_str)
 
         st.info("🔧 Procesando…")
         pivot_df = procesar_dataframe(df, plantilla_file)
