@@ -155,12 +155,13 @@ def conteo(fecha_desde, fecha_hasta):
         raise Exception(f"Error HTTP {r.status_code}: {r.text}")
     return int(r.json()[0]["count"])
 
-
-def descargar_datos(fecha_desde, fecha_hasta):
+def descargar_datos(tipo_entidad,fecha_desde, fecha_hasta):
     """Descarga datos con paginación."""
     where_clause = (
         f"fecha_corte between '{fecha_desde}T00:00:00' and "
-        f"'{fecha_hasta}T23:59:59'"
+        f"'{fecha_hasta}T23:59:59' AND "
+        f"nombre_moneda = 'Total' AND "
+        f"nombre_tipo_entidad = '{tipo_entidad}'"
     )
 
     offset = 0
@@ -241,7 +242,7 @@ def procesar_dataframe(df, plantilla_path):
 # -------------------------
 # EXPORTAR A EXCEL
 # -------------------------
-def generar_excel(pivot_df, fecha_desde):
+def generar_excel(pivot_df, tipo_entidad, fecha_desde):
     date_obj = datetime.strptime(fecha_desde, "%Y-%m-%d")
     f_informe = datetime.strptime(fecha_desde, "%d/%m/%Y")
     formatted_date = date_obj.strftime("%d%m%Y")
@@ -252,7 +253,7 @@ def generar_excel(pivot_df, fecha_desde):
 
     # Encabezados
     ws["A2"] = "Tipo de Entidad:"
-    ws["B2"] = "1 ESTABLECIMIENTOS BANCARIOS"
+    ws["B2"] = tipo_entidad
 
     ws["A3"] = "Fecha de Informe:"
     ws["B3"] = f_informe
@@ -295,6 +296,45 @@ st.subheader("Descargar datos por rango de fechas")
 
 fecha_desde = st.date_input("Fecha Desde")
 fecha_hasta = st.date_input("Fecha Hasta")
+
+st.subheader("Seleccionar el tipo de entidad")
+lista_tipo_entidad = [
+    "ESTABLECIMIENTOS BANCARIOS",                                          
+    "COMPANIAS DE SEGUROS GENERALES",
+    "COMPANIAS DE SEGUROS DE VIDA",
+    "SOCIEDADES FIDUCIARIAS",
+    "COMPANIAS DE FINANCIAMIENTO COMERCI",
+    "COMISIONISTAS  DE BOLSA DE VALORES",
+    "INSTITUCIONES OFICIALES ESPECIALES",
+    "COOPERATIVAS CARACTER FINANCIERO",
+    "SISTEMAS DE PAGO DE BAJO VALOR",
+    "SOCIEDADES COMISIONISTAS DE BOLSAS AGROPECUARIAS",
+    "CORPORACIONES FINA11NCIERAS",
+    "SOC ESP DEPOSITOS Y PAGOS ELECTRONI",
+    "SOC. ADM. FONDOS DE PENSIONES Y CES",
+    "ALMACENES GENERALES DE DEPOSITO",
+    "SOCIEDADES COOPERATIVAS DE SEGUROS",
+    "SOC ADM SIST DE  NEG Y REG SOBRE VA",
+    "SOC ADM SIST DE NEG Y REG DE DIVISA",
+    "PROVEEDOR DE PRECIOS PARA VALORACIO",
+    "SOCIEDADES CALIFICADORAS DE VALORES",
+    "SOCIEDADES DE CAPITALIZACION",
+    "BOLSAS DE VALORES",
+    "SOCIEDADES ADMINISTRADORAS DE DEPOSITOS CENTRALIZADOS V",
+    "ENTID ADM. REGIMEN SOL PRIMA MEDIA",
+    "CAMARA RIESGO CENTRAL D CONTRAPARTE",
+    "BOLSAS AGROPECUARIAS",
+    "ORGANISMOS DE AUTORREGULACION",
+]
+tipo_entidad = st.selectbox(
+    label="Choose your favorite fruit:",
+    options=lista_tipo_entidad,
+    index=0,  # Default selection (0 = first item)
+    placeholder="Seleccione el tipo de entidad (SFC)..."  # Optional placeholder
+)
+
+# Display the selected value
+st.write(f"You selected: **{tipo_entidad}**")
 
 plantilla_file = st.file_uploader("Suba la plantilla de cuentas", type=["xlsx"])
 
