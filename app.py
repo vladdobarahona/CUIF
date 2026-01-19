@@ -244,7 +244,7 @@ def procesar_dataframe(df, plantilla_path):
 # -------------------------
 def generar_excel(pivot_df, tipo_entidad, fecha_desde):
     date_obj = datetime.strptime(fecha_desde, "%Y-%m-%d")
-    f_informe = datetime.strptime(fecha_desde, "%d/%m/%Y")
+    f_informe = datetime.strptime(fecha_desde, "%Y-%m-%d").strftime("%d/%m/%Y")
     formatted_date = date_obj.strftime("%d%m%Y")
     tipo_entidad_str = str(tipo_entidad)
 
