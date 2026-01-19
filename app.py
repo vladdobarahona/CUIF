@@ -311,7 +311,7 @@ def generar_excel(pivot_df, tipo_entidad, fecha_desde, factor_rango, etiqueta_un
 # -------------------------
 # UI STREAMLIT
 # -------------------------
-st.title("📊 CUIF – Descarga y Procesamiento")
+
 st.write("Aplicación para descarga, validación y generación de reportes CUIF.")
 
 # ---- CONSULTAR FECHA MÁXIMA -----
