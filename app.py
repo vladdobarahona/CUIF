@@ -142,18 +142,36 @@ def max_fecha():
     return None
 
 
-def conteo(fecha_desde, fecha_hasta):
-    """Consulta cuántos registros hay entre dos fechas."""
-    query = f'''
-    https://www.datos.gov.co/resource/mxk5-ce6w.json?$query=
-    SELECT count(*)
-    WHERE fecha_corte BETWEEN "{fecha_desde}T00:00:00"::floating_timestamp
-    AND "{fecha_hasta}T23:59:59"::floating_timestamp
-    '''
-    r = requests.get(query)
+def conteo(tipo_entidad: str, fecha_desde: str, fecha_hasta: str) -> int:
+    """
+    Devuelve el número de registros en el dataset CUIF para:
+    - tipo_entidad (str exacto como aparece en la SFC)
+    - rango de fechas [fecha_desde, fecha_hasta] en formato YYYY-MM-DD
+
+    Retorna: int (count)
+    Lanza: Exception si la API responde con error distinto de 200.
+    """
+    where = (
+        f"fecha_corte between '{fecha_desde}T00:00:00' and '{fecha_hasta}T23:59:59'"
+        f" AND nombre_moneda = 'Total'"
+        f" AND nombre_tipo_entidad = '{tipo_entidad}'"
+    )
+
+    params = {
+        "$select": "count(*)",
+        "$where": where
+    }
+
+    r = requests.get(BASE_URL, params=params)
     if r.status_code != 200:
         raise Exception(f"Error HTTP {r.status_code}: {r.text}")
-    return int(r.json()[0]["count"])
+
+    data = r.json()
+    # Respuesta típica: [{'count': '12345'}]
+    try:
+        return int(data[0].get("count", 0))
+    except (IndexError, ValueError, TypeError):
+        return 0
 
 def descargar_datos(tipo_entidad,fecha_desde, fecha_hasta):
     """Descarga datos con paginación."""
