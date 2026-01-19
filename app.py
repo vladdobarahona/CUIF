@@ -246,10 +246,10 @@ def procesar_dataframe(df, plantilla_path):
     plantilla = plantilla[["Cuenta", "Descripción_Cuenta"]]
     plantilla["Cuenta"] = plantilla["Cuenta"].astype(str)
     pivot_df["cuenta"] = pivot_df["cuenta"].astype(str)
-
+    pivot_df = pivot_df.drop(columns = 'nombre_cuenta')
     plantilla = plantilla.rename(columns={"Cuenta": "cuenta", "Descripción_Cuenta": "nombre_cuenta"})
-    plantilla = plantilla.set_index(["cuenta", "nombre_cuenta"])
-    pivot_df = pivot_df.set_index(["cuenta", "nombre_cuenta"])
+    plantilla = plantilla.set_index(["cuenta"])
+    pivot_df = pivot_df.set_index(["cuenta"])
 
     pivot_full = plantilla.join(pivot_df, how="left").fillna(0)
     pivot_full = pivot_full.reset_index()
