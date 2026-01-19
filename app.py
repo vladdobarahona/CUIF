@@ -370,7 +370,7 @@ if st.button("Validar y Descargar"):
         fecha_hasta_str = fecha_hasta.strftime("%Y-%m-%d")
 
         st.info("🔍 Consultando cantidad de registros…")
-        cantidad = conteo(fecha_desde_str, fecha_hasta_str)
+        cantidad = conteo(tipo_entidad,fecha_desde_str, fecha_hasta_str)
         st.write(f"📌 Registros: **{cantidad:,}**")
 
         st.info("⬇️ Descargando datos…")
