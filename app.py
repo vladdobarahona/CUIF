@@ -327,7 +327,7 @@ lista_tipo_entidad = [
     "ORGANISMOS DE AUTORREGULACION",
 ]
 tipo_entidad = st.selectbox(
-    label="Choose your favorite fruit:",
+    label="Seleccione el tipo de entidad (SFC):",
     options=lista_tipo_entidad,
     index=0,  # Default selection (0 = first item)
     placeholder="Seleccione el tipo de entidad (SFC)..."  # Optional placeholder
