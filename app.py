@@ -21,13 +21,16 @@ from openpyxl.utils import get_column_letter
 import re
 
 # ==============================
-# CONFIGURACIÓN GENERAL
+# CONFIG
 # ==============================
 BASE_URL = "https://www.datos.gov.co/resource/mxk5-ce6w.json"
-LIMIT = 50000  # paginación
+LIMIT = 50000
 
-# FACTORES DE CONVERSIÓN
+# ==============================
+# RANGOS DE VALORES
+# ==============================
 UNIDADES_VALOR = {
+    "Sin Unidades": (1, "Pesos"),
     "Miles": (1_000, "Miles de Pesos"),
     "Millones": (1_000_000, "Millones de Pesos"),
     "Cientos de Millones": (100_000_000, "Cientos de Millones de Pesos"),
@@ -36,11 +39,9 @@ UNIDADES_VALOR = {
 }
 
 # ==============================
-# FUNCIONES
+# FUNCIONES API
 # ==============================
-
 def max_fecha():
-    """Consulta la fecha máxima en el dataset CUIF."""
     query = '''
     https://www.datos.gov.co/resource/mxk5-ce6w.json?$query=
     SELECT max(fecha_corte)
@@ -53,22 +54,23 @@ def max_fecha():
 
 
 def conteo(tipo_entidad: str, fecha_desde: str, fecha_hasta: str) -> int:
-    """Cuenta registros según filtros."""
     where = (
         f"fecha_corte between '{fecha_desde}T00:00:00' and '{fecha_hasta}T23:59:59'"
         f" AND nombre_moneda = 'Total'"
         f" AND nombre_tipo_entidad = '{tipo_entidad}'"
     )
+
     params = {"$select": "count(*)", "$where": where}
     r = requests.get(BASE_URL, params=params)
+
     if r.status_code != 200:
         raise Exception(f"Error HTTP {r.status_code}: {r.text}")
+
     data = r.json()
     return int(data[0].get("count", 0)) if data else 0
 
 
 def descargar_datos(tipo_entidad, fecha_desde, fecha_hasta):
-    """Descarga datos con paginación."""
     where_clause = (
         f"fecha_corte between '{fecha_desde}T00:00:00' and '{fecha_hasta}T23:59:59'"
         f" AND nombre_moneda = 'Total'"
@@ -94,7 +96,9 @@ def descargar_datos(tipo_entidad, fecha_desde, fecha_hasta):
 
     return pd.DataFrame(all_rows)
 
-
+# ==============================
+# PROCESAMIENTO
+# ==============================
 def procesar_dataframe(df, plantilla_path, factor_rango):
     df_final = df.copy()
 
@@ -114,32 +118,32 @@ def procesar_dataframe(df, plantilla_path, factor_rango):
     pivot_df.columns.name = None
     pivot_df = pivot_df.reset_index()
 
-    # Ordenar columnas
+    # Orden columnas
     def sort_by_prefix(col):
         match = re.match(r'^(\d+)\s*-', str(col))
-        return int(match.group(1)) if match else -1
+        return int(match.group(1)) if match else 99999
 
     fixed = ["cuenta", "nombre_cuenta"]
-    other_cols = [c for c in pivot_df.columns if c not in fixed]
-    pivot_df = pivot_df[fixed + sorted(other_cols, key=sort_by_prefix)]
+    others = [c for c in pivot_df.columns if c not in fixed]
+    pivot_df = pivot_df[fixed + sorted(others, key=sort_by_prefix)]
 
-    # MERGE CON PLANTILLA
+    # MERGE PLANTILLA
     plantilla = pd.read_excel(plantilla_path, sheet_name="Cuentas")
     plantilla = plantilla[["Cuenta", "Descripción_Cuenta"]]
-
     plantilla["Cuenta"] = plantilla["Cuenta"].astype(str)
     pivot_df["cuenta"] = pivot_df["cuenta"].astype(str)
 
     plantilla = plantilla.rename(columns={"Cuenta": "cuenta", "Descripción_Cuenta": "nombre_cuenta"})
-    plantilla = plantilla.set_index(["cuenta"])
-    pivot_df = pivot_df.set_index(["cuenta"])
+    plantilla = plantilla.set_index("cuenta")
+    pivot_df = pivot_df.set_index("cuenta")
 
-    pivot_full = plantilla.join(pivot_df, how="left").fillna(0)
-    pivot_full = pivot_full.reset_index()
+    pivot_full = plantilla.join(pivot_df, how="left").fillna(0).reset_index()
 
     return pivot_full
 
-
+# ==============================
+# GENERAR EXCEL
+# ==============================
 def generar_excel(pivot_df, tipo_entidad, fecha_desde, factor_rango, etiqueta_unidad):
     date_obj = datetime.strptime(fecha_desde, "%Y-%m-%d")
     f_informe = date_obj.strftime("%d/%m/%Y")
@@ -149,7 +153,6 @@ def generar_excel(pivot_df, tipo_entidad, fecha_desde, factor_rango, etiqueta_un
     ws = wb.active
     ws.title = f"00{formatted_date}g1m0cie"
 
-    # ENCABEZADOS
     ws["A2"] = "Tipo de Entidad:"
     ws["B2"] = tipo_entidad
 
@@ -163,7 +166,6 @@ def generar_excel(pivot_df, tipo_entidad, fecha_desde, factor_rango, etiqueta_un
     ws["B5"] = str(factor_rango)
     ws["C5"] = etiqueta_unidad
 
-    # MATRIZ
     start_row = 9
     for r_idx, row in enumerate(dataframe_to_rows(pivot_df, index=False, header=True)):
         for c_idx, value in enumerate(row):
@@ -173,24 +175,23 @@ def generar_excel(pivot_df, tipo_entidad, fecha_desde, factor_rango, etiqueta_un
     wb.save(output)
     return output.getvalue()
 
+
 # ==============================
 # INTERFAZ STREAMLIT
 # ==============================
 st.title("📊 CUIF – Descarga y Procesamiento de Información Financiera")
 
-# Fecha máxima
+# Fecha máxima disponible
 if st.button("Consultar Fecha Máxima Disponible"):
     fecha = max_fecha()
-    if fecha:
-        st.success(f"📅 Fecha máxima encontrada: **{fecha}**")
-    else:
-        st.error("No se pudo obtener la fecha máxima.")
+    st.success(f"📅 Fecha máxima encontrada: **{fecha}**") if fecha else st.error("Error consultando fecha.")
 
-st.subheader("Seleccione el rango de fechas")
-fecha_desde = st.date_input("Fecha Desde")
-fecha_hasta = st.date_input("Fecha Hasta")
+# Entradas obligatorias
+st.subheader("Rango de fechas")
+fecha_desde = st.date_input("Desde")
+fecha_hasta = st.date_input("Hasta")
 
-# TIPOS DE ENTIDAD
+# Tipo entidad
 lista_tipo_entidad = [
     "ESTABLECIMIENTOS BANCARIOS",
     "COMPANIAS DE SEGUROS GENERALES",
@@ -198,45 +199,44 @@ lista_tipo_entidad = [
     "SOCIEDADES FIDUCIARIAS",
 ]
 
-tipo_entidad = st.selectbox("Tipo de entidad (SFC):", lista_tipo_entidad)
+tipo_entidad = st.selectbox("Tipo de Entidad (SFC):", lista_tipo_entidad)
 
-# RANGO DE VALORES (Miles, Millones, Billones...)
-st.subheader("Rango de Valores (Unidad de salida)")
-opcion_rango = st.selectbox("Seleccione unidad:", list(UNIDADES_VALOR.keys()))
+# Nuevo: Selección de unidad
+st.subheader("Rango de Valores")
+opcion_rango = st.selectbox("Unidad:", list(UNIDADES_VALOR.keys()))
 factor_rango, etiqueta_unidad = UNIDADES_VALOR[opcion_rango]
+st.caption(f"Dividir por **{factor_rango:,}** ({etiqueta_unidad})")
 
-plantilla_file = st.file_uploader("Subir plantilla de cuentas NIIF", type=["xlsx"])
+# Plantilla NIIF
+plantilla_file = st.file_uploader("Suba plantilla NIIF", type=["xlsx"])
 
-# BOTÓN FINAL
+# BOTÓN PRINCIPAL
 if st.button("Validar y Descargar"):
-
     if fecha_desde > fecha_hasta:
-        st.error("⚠ La fecha inicial no puede ser mayor a la final.")
+        st.error("⚠ La fecha inicial no puede ser mayor que la final.")
     elif plantilla_file is None:
-        st.error("⚠ Debe subir la plantilla NIIF.")
+        st.error("⚠ Debe cargar la plantilla NIIF.")
     else:
         fecha_desde_str = fecha_desde.strftime("%Y-%m-%d")
         fecha_hasta_str = fecha_hasta.strftime("%Y-%m-%d")
 
-        st.info("🔍 Consultando cantidad de registros…")
-        cantidad = conteo(tipo_entidad, fecha_desde_str, fecha_hasta_str)
-        st.write(f"📌 Registros encontrados: **{cantidad:,}**")
+        st.info("🔍 Consultando cantidad...")
+        total = conteo(tipo_entidad, fecha_desde_str, fecha_hasta_str)
+        st.write(f"Registros encontrados: **{total:,}**")
 
-        st.info("⬇️ Descargando datos…")
+        st.info("⬇ Descargando información...")
         df = descargar_datos(tipo_entidad, fecha_desde_str, fecha_hasta_str)
 
-        st.info("🔧 Procesando datos…")
+        st.info("🔧 Procesando...")
         pivot_df = procesar_dataframe(df, plantilla_file, factor_rango)
 
         st.success("Archivo generado correctamente 🎉")
 
-        xlsx_bytes = generar_excel(
-            pivot_df, tipo_entidad, fecha_desde_str, factor_rango, etiqueta_unidad
-        )
+        xlsx = generar_excel(pivot_df, tipo_entidad, fecha_desde_str, factor_rango, etiqueta_unidad)
 
         st.download_button(
-            "📥 Descargar archivo XLSX",
-            data=xlsx_bytes,
+            "📥 Descargar Excel",
+            data=xlsx,
             file_name=f"00{fecha_desde.strftime('%d%m%Y')}n.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
