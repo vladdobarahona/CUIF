@@ -334,7 +334,7 @@ tipo_entidad = st.selectbox(
 )
 
 # Display the selected value
-st.write(f"You selected: **{tipo_entidad}**")
+st.write(f"Has seleccionado: **{tipo_entidad}**")
 
 plantilla_file = st.file_uploader("Suba la plantilla de cuentas", type=["xlsx"])
 
