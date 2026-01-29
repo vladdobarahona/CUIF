@@ -271,10 +271,11 @@ def procesar_dataframe(df, plantilla_path, factor_rango):
 def generar_excel(pivot_df, tipo_entidad, fecha_desde, factor_rango, etiqueta_unidad):
     f_informe = datetime.strptime(fecha_desde, "%Y-%m-%d").strftime("%d/%m/%Y")
     tipo_entidad_str = str(tipo_entidad)
-
+    date_obj = datetime.strptime(fecha_desde, "%Y-%m-%d")
+    
     wb = Workbook()
     ws = wb.active
-    ws.title = f"{nombre_hoja[tipo_entidad]}{fecha_desde.strftime('%m%Y')}g1m0cie"
+    ws.title = f"{nombre_hoja[tipo_entidad]}{date_obj.strftime('%m%Y')}g1m0cie"
 
     # Encabezados
     ws["A2"] = "Tipo de Entidad:"
