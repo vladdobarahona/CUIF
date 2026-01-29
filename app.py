@@ -222,11 +222,9 @@ def descargar_datos(tipo_entidad,fecha_desde, fecha_hasta):
 # -------------------------
 def procesar_dataframe(df, plantilla_path, factor_rango):
     df_final = df.copy()
-    #df_final = df_final[(df_final["nombre_moneda"] == "Total")] 
-    #df_final = df_final[(df_final["nombre_tipo_entidad"] == "ESTABLECIMIENTOS BANCARIOS")]
-
-    Rango_de_Valores = factor_rango   # ← divisor dinámico elegido en Streamlit
-    
+    mask = df_final['cuenta'].isin(cambio_signo_cuenta)
+    df_final.loc[mask, 'valor'] = df_final.loc[mask, 'valor'].astype(str).str.replace('-', '', regex=False)
+    Rango_de_Valores = factor_rango   
     df_final["valor_Rango_de_Valores"] = (
         pd.to_numeric(df_final["valor"], errors="coerce") / Rango_de_Valores
     ).round(0)
@@ -262,10 +260,8 @@ def procesar_dataframe(df, plantilla_path, factor_rango):
     plantilla = plantilla.rename(columns={"Cuenta": "cuenta", "Descripción_Cuenta": "nombre_cuenta"})
     plantilla = plantilla.set_index(["cuenta"])
     pivot_df = pivot_df.set_index(["cuenta"])
-
     pivot_full = plantilla.join(pivot_df, how="left").fillna(0)
     pivot_full = pivot_full.reset_index()
-
     return pivot_full
 
 
@@ -273,14 +269,12 @@ def procesar_dataframe(df, plantilla_path, factor_rango):
 # EXPORTAR A EXCEL
 # -------------------------
 def generar_excel(pivot_df, tipo_entidad, fecha_desde, factor_rango, etiqueta_unidad):
-    date_obj = datetime.strptime(fecha_desde, "%Y-%m-%d")
     f_informe = datetime.strptime(fecha_desde, "%Y-%m-%d").strftime("%d/%m/%Y")
-    formatted_date = date_obj.strftime("%d%m%Y")
     tipo_entidad_str = str(tipo_entidad)
 
     wb = Workbook()
     ws = wb.active
-    ws.title = f"00{formatted_date}g1m0cie"
+    ws.title = f"{nombre_hoja[tipo_entidad]}{fecha_desde.strftime('%m%Y')}g1m0cie"
 
     # Encabezados
     ws["A2"] = "Tipo de Entidad:"
@@ -360,6 +354,37 @@ lista_tipo_entidad = [
     "ORGANISMOS DE AUTORREGULACION",
 ]
 
+nombre_hoja = {
+    "ESTABLECIMIENTOS BANCARIOS":'0001',                                          
+    "COMPANIAS DE SEGUROS GENERALES":'0013',
+    "COMPANIAS DE SEGUROS DE VIDA":'0014',
+    "SOCIEDADES FIDUCIARIAS":'0005',
+    "COMPANIAS DE FINANCIAMIENTO COMERCI":'0004',
+    "COMISIONISTAS  DE BOLSA DE VALORES":'0085',
+    "INSTITUCIONES OFICIALES ESPECIALES":'0022',
+    "COOPERATIVAS CARACTER FINANCIERO": '0032',
+    "SISTEMAS DE PAGO DE BAJO VALOR":'0012',
+    "SOCIEDADES COMISIONISTAS DE BOLSAS AGROPECUARIAS":'0401',
+    "CORPORACIONES FINA11NCIERAS": '0002',
+    "SOC ESP DEPOSITOS Y PAGOS ELECTRONI":'0128',
+    "SOC. ADM. FONDOS DE PENSIONES Y CES":'0023',
+    "ALMACENES GENERALES DE DEPOSITO":'0006',
+    "SOCIEDADES COOPERATIVAS DE SEGUROS":'0015',
+    "SOC ADM SIST DE  NEG Y REG SOBRE VA":'0502',
+    "SOC ADM SIST DE NEG Y REG DE DIVISA":'0501',
+    "PROVEEDOR DE PRECIOS PARA VALORACIO":'0509',
+    "SOCIEDADES CALIFICADORAS DE VALORES":'0084',
+    "SOCIEDADES DE CAPITALIZACION":'0010',
+    "BOLSAS DE VALORES":'0082',
+    "SOCIEDADES ADMINISTRADORAS DE DEPOSITOS CENTRALIZADOS V":'0083',
+    "ENTID ADM. REGIMEN SOL PRIMA MEDIA":'0025',
+    "CAMARA RIESGO CENTRAL D CONTRAPARTE":'0504',
+    "BOLSAS AGROPECUARIAS":'0400',
+    "ORGANISMOS DE AUTORREGULACION":'0081',
+}
+
+cambio_signo_cuenta = ['392000']
+
 tipo_entidad = st.selectbox(
     label="Seleccione el tipo de entidad (SFC):",
     options=lista_tipo_entidad,
@@ -417,6 +442,6 @@ if st.button("Validar y Descargar"):
         st.download_button(
             label="📥 Descargar archivo XLSX",
             data=xlsx_bytes,
-            file_name=f"00{fecha_desde.strftime('%d%m%Y')}n.xlsx",
+            file_name=f"{nombre_hoja[tipo_entidad]}{fecha_desde.strftime('%m%Y')}n.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
